@@ -216,7 +216,21 @@ LIBIMOBILEDEVICE_API idevice_error_t idevice_get_device_list(char ***devices, in
 
 	for (i = 0; dev_list[i].handle > 0; i++) {
 		newlist = realloc(*devices, sizeof(char*) * (newcount+1));
-		newlist[newcount++] = strdup(dev_list[i].udid);
+		const char * connectionType = NULL;
+		switch (dev_list[i].connection_type) {
+			case UC_USB:
+				connectionType = "USB";
+				break;
+			case UC_WIFI:
+				connectionType = "WIFI";
+				break;
+			default:
+				connectionType = "unknown";
+		}
+		size_t devNameLen = strlen(connectionType) + strlen(dev_list[i].udid) + strlen("%s (%s)") + 1;
+		newlist[newcount] = malloc(devNameLen);
+		snprintf(newlist[newcount],devNameLen, "%s (%s)",dev_list[i].udid,connectionType);
+		newcount++;
 		*devices = newlist;
 	}
 	usbmuxd_device_list_free(&dev_list);
